@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finanzas — Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #08080a;
+    --glass: rgba(255, 255, 255, 0.04);
+    --glass-strong: rgba(255, 255, 255, 0.07);
+    --glass-hover: rgba(255, 255, 255, 0.08);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --text: #fafafa;
+    --text-soft: rgba(255, 255, 255, 0.72);
+    --text-mute: rgba(255, 255, 255, 0.45);
+    --text-faint: rgba(255, 255, 255, 0.25);
+    --text-ghost: rgba(255, 255, 255, 0.12);
+
+    --silver: #e4e4e7;
+    --silver-dim: #a1a1aa;
+    --silver-deep: #52525b;
+
+    --glow-bright: rgba(255, 255, 255, 0.5);
+    --glow-soft: rgba(255, 255, 255, 0.18);
+    --glow-faint: rgba(255, 255, 255, 0.08);
+
+    --shadow-lifted:
+      inset 0 1px 0 rgba(255,255,255,0.14),
+      inset 0 -1px 0 rgba(0,0,0,0.15),
+      0 1px 2px rgba(0,0,0,0.25),
+      0 8px 24px -4px rgba(0,0,0,0.35),
+      0 24px 64px -12px rgba(0,0,0,0.55);
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
+    letter-spacing: -0.011em;
+  }
+
+  /* ────── Background grid (blueprint feel) ────── */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: -1px -1px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 0%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 0%, transparent 80%);
+  }
+  .grid-bg-fine {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+    background-size: 12px 12px;
+    mask-image: radial-gradient(ellipse 60% 40% at 50% 30%, black 0%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse 60% 40% at 50% 30%, black 0%, transparent 70%);
+  }
+
+  /* ────── Grayscale background orbs ────── */
+  .bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(110px);
+  }
+  .orb-1 {
+    top: -15%;
+    left: -5%;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+  }
+  .orb-2 {
+    top: 5%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+  }
+  .orb-3 {
+    bottom: -25%;
+    left: 25%;
+    width: 900px;
+    height: 900px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
+  }
+  .orb-4 {
+    bottom: 15%;
+    right: 10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+  }
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+  }
+
+  .app {
+    position: relative;
+    z-index: 2;
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+  }
+
+  /* ────── Top floating bar ────── */
+  .topbar {
+    background: var(--glass);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-lifted);
+  }
+  .topbar-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.4) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #0a0a0c;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.8),
+      0 4px 12px rgba(255, 255, 255, 0.15);
+  }
+  .topbar-title { flex-shrink: 0; }
+  .topbar-title .name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .topbar-title .sub {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 400;
+    margin-top: 1px;
+  }
+  .topbar-search {
+    flex: 1;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 9px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-mute);
+  }
+  .topbar-search svg { width: 14px; height: 14px; opacity: 0.5; }
+  .topbar-search .kbd {
+    margin-left: auto;
+    padding: 2px 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--text-faint);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+  }
+  .topbar-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-soft);
+    transition: all 0.2s;
+    position: relative;
+  }
+  .icon-btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .icon-btn svg { width: 16px; height: 16px; stroke-width: 1.8; }
+  .icon-btn .badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 7px;
+    height: 7px;
+    background: var(--text);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--glow-bright);
+    animation: pulse 2s infinite;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--text);
+    padding: 0 16px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.12));
+    box-shadow: 0 0 24px -4px var(--glow-soft);
+  }
+  .btn-primary svg { width: 14px; height: 14px; stroke-width: 2.2; }
+
+  /* ────── Card system ────── */
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: var(--shadow-lifted);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 100px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: 24px 24px 0 0;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px 14px;
+    position: relative;
+  }
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.005em;
+  }
+  .card-title .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text);
+    box-shadow: 0 0 8px var(--glow-bright);
+  }
+  .card-title .dot.ring {
+    background: transparent;
+    border: 1.5px solid var(--text);
+    box-shadow: 0 0 8px var(--glow-soft);
+    animation: pulse-ring 2.5s infinite;
+  }
+  .card-title .dot.dim {
+    background: var(--silver-dim);
+    box-shadow: 0 0 6px rgba(161,161,170,0.4);
+  }
+  .card-meta {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-body { padding: 6px 22px 22px; }
+
+  /* ────── Hero row ────── */
+  .hero-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .hero-card { padding: 24px 26px 26px; }
+  .hero-card .label {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-card .label .indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text);
+    box-shadow: 0 0 8px var(--glow-bright);
+  }
+  .hero-card .label .indicator.dim {
+    background: var(--silver-dim);
+    box-shadow: 0 0 6px rgba(161,161,170,0.3);
+  }
+
+  .hero-card.large .value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 62px;
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(135deg, #ffffff 0%, #e4e4e7 35%, #71717a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+  .hero-card.large .value .currency {
+    font-size: 36px;
+    vertical-align: 0.22em;
+    opacity: 0.55;
+    margin-right: 2px;
+    font-weight: 400;
+  }
+  .hero-card .value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 44px;
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 10px;
+  }
+  .hero-card .value .currency {
+    font-size: 26px;
+    vertical-align: 0.22em;
+    color: var(--text-mute);
+    margin-right: 1px;
+    font-weight: 400;
+  }
+  .hero-card .value.bright {
+    background: linear-gradient(135deg, #ffffff 0%, #ffffff 30%, #d4d4d8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-card .delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 8px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 100px;
+    font-size: 11px;
+    color: var(--text);
+    font-weight: 500;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .hero-card .delta svg { width: 11px; height: 11px; }
+  .hero-card .sub-text {
+    font-size: 12px;
+    color: var(--text-mute);
+    margin-top: 10px;
+    font-weight: 400;
+  }
+
+  /* ────── Mini sparkline ────── */
+  .progress-mini {
+    margin-top: 18px;
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    height: 36px;
+  }
+  .progress-mini .bar {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    position: relative;
+  }
+  .progress-mini .bar.active {
+    background: linear-gradient(180deg, #ffffff, rgba(255,255,255,0.25));
+    box-shadow: 0 0 16px var(--glow-soft);
+  }
+
+  /* ────── Metrics row ────── */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .metric-card { padding: 18px 20px 20px; }
+  .metric-card .label {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .metric-card .label .pill {
+    padding: 2px 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    font-size: 10px;
+    color: var(--text-faint);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .metric-card .label .alert-pill {
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+    border: 1px dashed rgba(255,255,255,0.25);
+    padding: 2px 8px 2px 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .metric-card .label .alert-pill::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text);
+    box-shadow: 0 0 6px var(--glow-bright);
+    animation: pulse 2s infinite;
+  }
+  .metric-card .value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 32px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .metric-card.alert .value {
+    background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .metric-card .sub {
+    font-size: 11px;
+    color: var(--text-mute);
+    margin-top: 8px;
+  }
+  .metric-card .sub.alert-text {
+    color: var(--text-soft);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text);
+    box-shadow: 0 0 8px var(--glow-bright);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+  @keyframes pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 0 var(--glow-soft); }
+    50% { box-shadow: 0 0 0 4px transparent; }
+  }
+
+  /* ────── Two column ────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* ────── Clients list ────── */
+  .client-row {
+    display: grid;
+    grid-template-columns: 22px 1fr 70px 100px;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.15s;
+  }
+  .client-row:hover { background: rgba(255,255,255,0.02); }
+  .client-row:last-child { border-bottom: none; }
+  .client-row .rank {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    color: var(--text-faint);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .client-row .info .name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .client-row.anchor .info .name::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--text);
+    box-shadow: 0 0 8px var(--glow-bright);
+    border-radius: 50%;
+    margin-left: 8px;
+    vertical-align: 2px;
+  }
+  .client-row .info .meta {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 400;
+  }
+  .client-row .tier-badge {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-soft);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    padding: 3px 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    text-align: center;
+  }
+  .client-row.anchor .tier-badge {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .client-row .amount {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .client-row .amount .pct {
+    display: block;
+    font-size: 10px;
+    color: var(--text-mute);
+    font-weight: 400;
+    margin-top: 1px;
+  }
+
+  /* ────── Tier breakdown ────── */
+  .tier-item { margin-bottom: 18px; }
+  .tier-item:last-child { margin-bottom: 4px; }
+  .tier-item .tier-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .tier-item .tier-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .tier-item .tier-name .count {
+    color: var(--text-mute);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+  .tier-item .tier-amount {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .tier-item .tier-amount .pct {
+    color: var(--text-mute);
+    font-weight: 400;
+    font-size: 11px;
+    margin-left: 6px;
+  }
+  .tier-item .tier-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+  .tier-item .tier-bar .fill {
+    height: 100%;
+    border-radius: 100px;
+  }
+  .tier-item.anchor .tier-bar .fill {
+    background: linear-gradient(90deg, #ffffff, #a1a1aa);
+    box-shadow: 0 0 14px var(--glow-soft);
+  }
+  .tier-item.high .tier-bar .fill {
+    background: linear-gradient(90deg, #d4d4d8, #71717a);
+  }
+  .tier-item.mid .tier-bar .fill {
+    background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
+  }
+  .tier-item.entry .tier-bar .fill {
+    background: rgba(255,255,255,0.2);
+  }
+
+  /* ────── Hire calculator ────── */
+  .hire-card { margin-bottom: 20px; }
+  .hire-content {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 32px;
+  }
+  .hire-controls {
+    padding-right: 32px;
+    border-right: 1px solid var(--border);
+  }
+  .slider-section { margin-bottom: 24px; }
+  .slider-section .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .slider-section .lbl {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .slider-section .val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 24px var(--glow-soft);
+  }
+  .slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 100px;
+    outline: none;
+    cursor: pointer;
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(135deg, #ffffff, #a1a1aa);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #08080a;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.35),
+      0 0 20px var(--glow-soft),
+      0 2px 4px rgba(0,0,0,0.4);
+  }
+  .slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(135deg, #ffffff, #a1a1aa);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #08080a;
+    box-shadow: 0 0 20px var(--glow-soft);
+  }
+
+  .segment-control {
+    display: flex;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+  }
+  .segment {
+    flex: 1;
+    padding: 9px 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-mute);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .segment:hover { color: var(--text-soft); }
+  .segment.active {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      0 1px 2px rgba(0,0,0,0.25);
+  }
+  .cost-line {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.025);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    font-size: 12px;
+    color: var(--text-mute);
+  }
+  .cost-line .total {
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .verdict {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .verdict-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px dashed rgba(255,255,255,0.25);
+    border-radius: 100px;
+    font-size: 11px;
+    color: var(--text);
+    font-weight: 500;
+    font-family: 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    width: fit-content;
+    margin-bottom: 18px;
+  }
+  .verdict-headline {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+  .verdict-headline .gap {
+    background: linear-gradient(135deg, #ffffff 0%, #ffffff 40%, #71717a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+    text-shadow: 0 0 30px rgba(255,255,255,0.3);
+  }
+  .verdict-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-soft);
+    margin-bottom: 16px;
+  }
+  .verdict-body strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .verdict-actions { display: flex; gap: 10px; }
+  .btn-ghost {
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 12px;
+    color: var(--text-soft);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+
+  /* ────── Projection card ────── */
+  .projection-row {
+    display: grid;
+    grid-template-columns: 70px 1fr 90px 70px 80px 90px;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .projection-row.header {
+    padding-top: 4px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-size: 11px;
+    color: var(--text-mute);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .projection-row .month {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .projection-row .narrative {
+    font-size: 13px;
+    color: var(--text-soft);
+  }
+  .projection-row .num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .projection-row .num.r { text-align: right; }
+  .projection-row .num.bold { font-weight: 600; color: var(--text); }
+  .projection-row .num.positive { color: var(--text); font-weight: 600; }
+  .projection-row.current { position: relative; }
+  .projection-row.current::before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    background: linear-gradient(180deg, #ffffff, #a1a1aa);
+    border-radius: 100px;
+    box-shadow: 0 0 12px var(--glow-soft);
+  }
+  .projection-row.current .month { color: var(--text); }
+
+  /* ────── Chart ────── */
+  .chart-wrap {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+  .chart-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+  }
+
+  /* ────── ROI ────── */
+  .roi-inputs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .roi-input {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 12px 14px;
+    transition: all 0.2s;
+  }
+  .roi-input:hover {
+    border-color: rgba(255,255,255,0.18);
+    background: rgba(0,0,0,0.3);
+  }
+  .roi-input label {
+    display: block;
+    font-size: 10px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .roi-input input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    outline: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .roi-outputs {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+  }
+  .roi-out {
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .roi-out.highlight {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      0 0 24px -8px var(--glow-bright);
+  }
+  .roi-out .lbl {
+    font-size: 10px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .roi-out .v {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .roi-out.highlight .v {
+    background: linear-gradient(135deg, #ffffff, #d4d4d8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 16px var(--glow-bright);
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="grid-bg-fine"></div>
+<div class="bg">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+<div class="grain"></div>
+
+<div class="app">
+
+  <!-- ═══════ TOP BAR ═══════ -->
+  <div class="topbar">
+    <div class="topbar-logo">$</div>
+    <div class="topbar-title">
+      <div class="name">Finanzas</div>
+      <div class="sub">Viernes 15 · Mayo 2026</div>
+    </div>
+    <div class="topbar-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Buscar cliente, gasto, mes...</span>
+      <span class="kbd">⌘K</span>
+    </div>
+    <div class="topbar-actions">
+      <div class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="badge"></span>
+      </div>
+      <div class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo cliente
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════ HERO ROW ═══════ -->
+  <div class="hero-row">
+    <div class="card hero-card large">
+      <div class="label"><span class="indicator"></span>Ingresos · MRR</div>
+      <div class="value"><span class="currency">$</span>2,963</div>
+      <div class="delta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+        +$87 vs mes anterior
+      </div>
+      <div class="progress-mini">
+        <div class="bar" style="height: 40%"></div>
+        <div class="bar" style="height: 55%"></div>
+        <div class="bar" style="height: 50%"></div>
+        <div class="bar" style="height: 62%"></div>
+        <div class="bar" style="height: 70%"></div>
+        <div class="bar" style="height: 68%"></div>
+        <div class="bar" style="height: 75%"></div>
+        <div class="bar" style="height: 72%"></div>
+        <div class="bar" style="height: 82%"></div>
+        <div class="bar" style="height: 78%"></div>
+        <div class="bar" style="height: 88%"></div>
+        <div class="bar active" style="height: 100%"></div>
+      </div>
+    </div>
+
+    <div class="card hero-card">
+      <div class="label"><span class="indicator dim"></span>Gastos fijos</div>
+      <div class="value"><span class="currency">$</span>2,097</div>
+      <div class="sub-text">7 conceptos · 65% infraestructura</div>
+    </div>
+
+    <div class="card hero-card">
+      <div class="label"><span class="indicator"></span>Neto mensual</div>
+      <div class="value bright"><span class="currency">$</span>866</div>
+      <div class="sub-text">Margen del 29% · sobre el equilibrio</div>
+    </div>
+  </div>
+
+  <!-- ═══════ METRICS ROW ═══════ -->
+  <div class="metrics-row">
+    <div class="card metric-card">
+      <div class="label">Margen <span class="pill">Objetivo 35%</span></div>
+      <div class="value">29.2%</div>
+      <div class="sub">Sub-óptimo · escalar precios</div>
+    </div>
+    <div class="card metric-card alert">
+      <div class="label">Concentración <span class="alert-pill">Riesgo</span></div>
+      <div class="value">32.1%</div>
+      <div class="sub alert-text"><span class="pulse"></span>American Outlet</div>
+    </div>
+    <div class="card metric-card">
+      <div class="label">Clientes activos <span class="pill">+2 mes</span></div>
+      <div class="value">10</div>
+      <div class="sub">0 churn en 30 días</div>
+    </div>
+    <div class="card metric-card">
+      <div class="label">Ticket promedio</div>
+      <div class="value">$296</div>
+      <div class="sub">Mediana $270 · max $950</div>
+    </div>
+  </div>
+
+  <!-- ═══════ TWO COL: CLIENTS + TIER ═══════ -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="dot"></span>Top clientes</div>
+        <div class="card-meta">Por MRR · 10 totales</div>
+      </div>
+      <div class="card-body">
+        <div class="client-row anchor">
+          <span class="rank">01</span>
+          <div class="info">
+            <div class="name">American Outlet</div>
+            <div class="meta">248 días activo · cuenta ancla</div>
+          </div>
+          <span class="tier-badge">Anchor</span>
+          <div class="amount">$950 <span class="pct">32.1%</span></div>
+        </div>
+        <div class="client-row">
+          <span class="rank">02</span>
+          <div class="info">
+            <div class="name">Ecoviva Desarrollos</div>
+            <div class="meta">167 días · real estate</div>
+          </div>
+          <span class="tier-badge">High</span>
+          <div class="amount">$375 <span class="pct">12.7%</span></div>
+        </div>
+        <div class="client-row">
+          <span class="rank">03</span>
+          <div class="info">
+            <div class="name">AO Liquidators</div>
+            <div class="meta">92 días · retail</div>
+          </div>
+          <span class="tier-badge">High</span>
+          <div class="amount">$375 <span class="pct">12.7%</span></div>
+        </div>
+        <div class="client-row">
+          <span class="rank">04</span>
+          <div class="info">
+            <div class="name">AO Warehouse</div>
+            <div class="meta">92 días · retail</div>
+          </div>
+          <span class="tier-badge">High</span>
+          <div class="amount">$375 <span class="pct">12.7%</span></div>
+        </div>
+        <div class="client-row">
+          <span class="rank">05</span>
+          <div class="info">
+            <div class="name">Nanku</div>
+            <div class="meta">134 días · hospitality</div>
+          </div>
+          <span class="tier-badge">Mid</span>
+          <div class="amount">$270 <span class="pct">9.1%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="dot ring"></span>Distribución por tier</div>
+        <div class="card-meta">Mensual</div>
+      </div>
+      <div class="card-body">
+        <div class="tier-item anchor">
+          <div class="tier-head">
+            <div class="tier-name">Anchor <span class="count">1 cliente</span></div>
+            <div class="tier-amount">$950 <span class="pct">32.1%</span></div>
+          </div>
+          <div class="tier-bar"><div class="fill" style="width: 32%"></div></div>
+        </div>
+        <div class="tier-item high">
+          <div class="tier-head">
+            <div class="tier-name">High <span class="count">3 clientes</span></div>
+            <div class="tier-amount">$1,125 <span class="pct">37.9%</span></div>
+          </div>
+          <div class="tier-bar"><div class="fill" style="width: 38%"></div></div>
+        </div>
+        <div class="tier-item mid">
+          <div class="tier-head">
+            <div class="tier-name">Mid <span class="count">2 clientes</span></div>
+            <div class="tier-amount">$540 <span class="pct">18.2%</span></div>
+          </div>
+          <div class="tier-bar"><div class="fill" style="width: 18%"></div></div>
+        </div>
+        <div class="tier-item entry">
+          <div class="tier-head">
+            <div class="tier-name">Entry <span class="count">4 clientes</span></div>
+            <div class="tier-amount">$348 <span class="pct">11.8%</span></div>
+          </div>
+          <div class="tier-bar"><div class="fill" style="width: 12%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ HIRE CALCULATOR ═══════ -->
+  <div class="card hire-card">
+    <div class="card-header">
+      <div class="card-title"><span class="dot"></span>¿Es momento de contratar?</div>
+      <div class="card-meta">Calculadora · Costa Rica 2026</div>
+    </div>
+    <div class="card-body">
+      <div class="hire-content">
+        <div class="hire-controls">
+          <div class="slider-section">
+            <div class="head">
+              <span class="lbl">Sueldo base mensual</span>
+              <span class="val">$1,000</span>
+            </div>
+            <input type="range" min="400" max="2500" value="1000" class="slider" oninput="this.parentElement.querySelector('.val').textContent = '$' + Number(this.value).toLocaleString()">
+          </div>
+
+          <div style="margin-bottom: 8px;">
+            <span style="font-size: 11px; color: var(--text-mute); font-family: 'Space Grotesk', sans-serif; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em;">Tipo de contratación</span>
+          </div>
+          <div class="segment-control">
+            <div class="segment active">Planilla</div>
+            <div class="segment">Servicios prof.</div>
+            <div class="segment">Contractor</div>
+          </div>
+
+          <div class="cost-line">
+            Costo total cargado · <span class="total">$1,400 / mes</span><br>
+            <span style="opacity: 0.7;">Incluye CCSS 26.67% + aguinaldo + vacaciones + cesantía</span>
+          </div>
+        </div>
+
+        <div class="verdict">
+          <div class="verdict-badge">
+            <span class="pulse"></span>
+            Aún no
+          </div>
+          <h3 class="verdict-headline">Faltan <span class="gap">$1,634</span> en MRR para mantener un margen del 30%.</h3>
+          <p class="verdict-body">Eso equivale a <strong>5 o 6 clientes nuevos</strong> al ticket promedio actual, o <strong>3 del tier High</strong>. Bajo servicios profesionales, el umbral baja a $584.</p>
+          <div class="verdict-actions">
+            <button class="btn-ghost">Ver escenarios</button>
+            <button class="btn-ghost">Simular contractor</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ PROJECTION ═══════ -->
+  <div class="card" style="margin-bottom: 20px;">
+    <div class="card-header">
+      <div class="card-title"><span class="dot"></span>Proyección · 3 meses</div>
+      <div class="card-meta">Editable · meta $5,000 en agosto</div>
+    </div>
+    <div class="card-body" style="padding-left: 32px;">
+      <div class="projection-row header">
+        <span>Mes</span>
+        <span>Narrativa</span>
+        <span class="num r">Meta MRR</span>
+        <span class="num r">Clientes</span>
+        <span class="num r">Ad spend</span>
+        <span class="num r">Margen</span>
+      </div>
+      <div class="projection-row current">
+        <span class="month">Mayo</span>
+        <span class="narrative">Base de partida · estado actual</span>
+        <span class="num bold">$2,963</span>
+        <span class="num">—</span>
+        <span class="num">$0</span>
+        <span class="num bold positive">$866</span>
+      </div>
+      <div class="projection-row">
+        <span class="month">Junio</span>
+        <span class="narrative">LinkedIn Agent en producción</span>
+        <span class="num bold">$3,463</span>
+        <span class="num">+2</span>
+        <span class="num">$0</span>
+        <span class="num positive">$1,366</span>
+      </div>
+      <div class="projection-row">
+        <span class="month">Julio</span>
+        <span class="narrative">Meta Ads piloto · CAC controlado</span>
+        <span class="num bold">$4,263</span>
+        <span class="num">+3</span>
+        <span class="num">$450</span>
+        <span class="num positive">$1,716</span>
+      </div>
+      <div class="projection-row">
+        <span class="month">Agosto</span>
+        <span class="narrative">Ventana de contratación abierta</span>
+        <span class="num bold">$5,263</span>
+        <span class="num">+4</span>
+        <span class="num">$600</span>
+        <span class="num positive">$2,566</span>
+      </div>
+
+      <div class="chart-wrap">
+        <svg viewBox="0 0 900 220" width="100%" style="display: block; position: relative; z-index: 1;">
+          <defs>
+            <linearGradient id="line-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.25)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </linearGradient>
+            <linearGradient id="stroke-grad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#a1a1aa"/>
+              <stop offset="100%" stop-color="#ffffff"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Break-even -->
+          <line x1="60" y1="155" x2="840" y2="155" stroke="#ffffff" stroke-width="0.7" stroke-dasharray="4,4" opacity="0.4"/>
+          <text x="840" y="148" fill="rgba(255,255,255,0.6)" font-family="Space Grotesk" font-size="10" font-weight="500" text-anchor="end">Break-even · $2,097</text>
+
+          <!-- Fill area -->
+          <path d="M 80,165 L 320,135 L 560,90 L 800,30 L 800,200 L 80,200 Z" fill="url(#line-grad)"/>
+
+          <!-- Line -->
+          <path d="M 80,165 L 320,135 L 560,90 L 800,30" stroke="url(#stroke-grad)" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round" style="filter: drop-shadow(0 0 8px rgba(255,255,255,0.4))"/>
+
+          <!-- Points -->
+          <circle cx="80" cy="165" r="6" fill="#08080a" stroke="#a1a1aa" stroke-width="2"/>
+          <circle cx="80" cy="165" r="2.5" fill="#a1a1aa"/>
+          <circle cx="320" cy="135" r="5" fill="#08080a" stroke="#d4d4d8" stroke-width="2"/>
+          <circle cx="560" cy="90" r="5" fill="#08080a" stroke="#e4e4e7" stroke-width="2"/>
+          <circle cx="800" cy="30" r="6" fill="#08080a" stroke="#ffffff" stroke-width="2"/>
+          <circle cx="800" cy="30" r="2.5" fill="#ffffff"/>
+
+          <!-- Month labels -->
+          <text x="80" y="195" fill="rgba(255,255,255,0.35)" font-family="Space Grotesk" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="1">MAY</text>
+          <text x="320" y="195" fill="rgba(255,255,255,0.35)" font-family="Space Grotesk" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="1">JUN</text>
+          <text x="560" y="195" fill="rgba(255,255,255,0.35)" font-family="Space Grotesk" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="1">JUL</text>
+          <text x="800" y="195" fill="rgba(255,255,255,0.35)" font-family="Space Grotesk" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="1">AGO</text>
+
+          <!-- Value labels -->
+          <g transform="translate(80, 145)">
+            <rect x="-30" y="-22" width="60" height="20" rx="6" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" stroke-width="0.5"/>
+            <text x="0" y="-8" fill="#e4e4e7" font-family="Space Grotesk" font-size="10" font-weight="600" text-anchor="middle">$2,963</text>
+          </g>
+          <g transform="translate(800, 10)">
+            <rect x="-30" y="-22" width="60" height="20" rx="6" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+            <text x="0" y="-8" fill="#ffffff" font-family="Space Grotesk" font-size="10" font-weight="600" text-anchor="middle">$5,263</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ AD ROI ═══════ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="dot"></span>Simulador de anuncios</div>
+      <div class="card-meta">Meta Ads · escenario base</div>
+    </div>
+    <div class="card-body">
+      <div class="roi-inputs">
+        <div class="roi-input">
+          <label>Presupuesto / mes</label>
+          <input type="text" value="$450">
+        </div>
+        <div class="roi-input">
+          <label>CPL esperado</label>
+          <input type="text" value="$30">
+        </div>
+        <div class="roi-input">
+          <label>Tasa de cierre</label>
+          <input type="text" value="10%">
+        </div>
+        <div class="roi-input">
+          <label>Retención</label>
+          <input type="text" value="12 meses">
+        </div>
+      </div>
+      <div class="roi-outputs">
+        <div class="roi-out">
+          <div class="lbl">Leads</div>
+          <div class="v">15</div>
+        </div>
+        <div class="roi-out">
+          <div class="lbl">Clientes</div>
+          <div class="v">1.5</div>
+        </div>
+        <div class="roi-out">
+          <div class="lbl">CAC</div>
+          <div class="v">$300</div>
+        </div>
+        <div class="roi-out">
+          <div class="lbl">LTV</div>
+          <div class="v">$3,552</div>
+        </div>
+        <div class="roi-out highlight">
+          <div class="lbl">LTV / CAC</div>
+          <div class="v">11.8×</div>
+        </div>
+        <div class="roi-out">
+          <div class="lbl">Payback</div>
+          <div class="v">1.0 m</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
