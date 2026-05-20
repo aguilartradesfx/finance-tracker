@@ -1,0 +1,164 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Silver Design System ── */
+:root {
+  /* Backgrounds */
+  --bg: #08080a;
+  --glass: rgba(255, 255, 255, 0.04);
+  --glass-strong: rgba(255, 255, 255, 0.07);
+  --glass-hover: rgba(255, 255, 255, 0.08);
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Text */
+  --text: #fafafa;
+  --text-soft: rgba(255, 255, 255, 0.72);
+  --text-mute: rgba(255, 255, 255, 0.45);
+  --text-faint: rgba(255, 255, 255, 0.25);
+  --text-ghost: rgba(255, 255, 255, 0.12);
+
+  /* Silver scale */
+  --silver: #e4e4e7;
+  --silver-dim: #a1a1aa;
+  --silver-deep: #52525b;
+
+  /* Glows */
+  --glow-bright: rgba(255, 255, 255, 0.5);
+  --glow-soft: rgba(255, 255, 255, 0.18);
+  --glow-faint: rgba(255, 255, 255, 0.08);
+
+  /* Shadow lifted (glass card) */
+  --shadow-lifted:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+    0 1px 2px rgba(0, 0, 0, 0.25),
+    0 8px 24px -4px rgba(0, 0, 0, 0.35),
+    0 24px 64px -12px rgba(0, 0, 0, 0.55);
+
+  /* shadcn compat — mapped to Silver scale */
+  --background: #08080a;
+  --foreground: #fafafa;
+  --card: rgba(255, 255, 255, 0.04);
+  --card-foreground: #fafafa;
+  --popover: #111113;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #08080a;
+  --secondary: rgba(255, 255, 255, 0.07);
+  --secondary-foreground: #fafafa;
+  --muted: rgba(255, 255, 255, 0.04);
+  --muted-foreground: rgba(255, 255, 255, 0.45);
+  --accent: rgba(255, 255, 255, 0.07);
+  --accent-foreground: #fafafa;
+  --destructive: rgba(255, 255, 255, 0.6);
+  --input: rgba(255, 255, 255, 0.06);
+  --ring: rgba(255, 255, 255, 0.3);
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: monospace;
+  --font-space: var(--font-space);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+/* ── Keyframes ── */
+@keyframes silver-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+@keyframes silver-pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0 var(--glow-soft); }
+  50% { box-shadow: 0 0 0 4px transparent; }
+}
+
+@keyframes silver-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Base reset ── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-inter, 'Inter', -apple-system, sans-serif);
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+  }
+}
+
+/* ── Silver utilities ── */
+@layer utilities {
+  .silver-text {
+    background: linear-gradient(135deg, #ffffff 0%, #e4e4e7 35%, #71717a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .silver-text-bright {
+    background: linear-gradient(135deg, #ffffff 0%, #ffffff 30%, #d4d4d8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .font-space {
+    font-family: var(--font-space, 'Space Grotesk', sans-serif);
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .animate-silver-pulse {
+    animation: silver-pulse 2s infinite;
+  }
+
+  .animate-silver-pulse-ring {
+    animation: silver-pulse-ring 2.5s infinite;
+  }
+}
