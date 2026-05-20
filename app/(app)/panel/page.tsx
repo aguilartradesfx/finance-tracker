@@ -44,8 +44,11 @@ export default async function PanelPage() {
   const activeClients = clients.filter((c) => c.status === 'active')
   const mrr = calculateMRR(clients)
   const totalExpenses = calculateExpenses(expenses)
+  const extraIncome = incomeEntries.reduce((sum, e) => sum + e.amount, 0)
+  const totalIncome = mrr + extraIncome
+  const totalNet = totalIncome - totalExpenses
   const net = calculateNet(mrr, totalExpenses)
-  const margin = calculateMargin(net, mrr)
+  const margin = calculateMargin(totalNet, totalIncome)
   const concentration = calculateConcentrationRisk(clients)
   const avgTicket = calculateAvgTicket(clients)
   const medianTicket = calculateMedianTicket(clients)
@@ -63,9 +66,6 @@ export default async function PanelPage() {
   const activeExpensesCount = expenses.filter((e) => e.active).length
 
   const top5 = activeClients.slice(0, 5)
-  const extraIncome = incomeEntries.reduce((sum, e) => sum + e.amount, 0)
-  const totalIncome = mrr + extraIncome
-  const totalNet = totalIncome - totalExpenses
 
   await ensureNextThreeMonthsGoals(mrr)
   const goals = await getMonthlyGoals()
@@ -105,10 +105,10 @@ export default async function PanelPage() {
         />
         <KpiHero
           label="Neto mensual"
-          value={net}
+          value={totalNet}
           indicatorVariant="bright"
           valueVariant="bright"
-          subtitle={`Margen del ${formatPercent(margin)} · ${net > 0 ? 'sobre el equilibrio' : 'bajo el equilibrio'}`}
+          subtitle={`Margen del ${formatPercent(margin)} · ${totalNet > 0 ? 'sobre el equilibrio' : 'bajo el equilibrio'}`}
         />
       </div>
 
