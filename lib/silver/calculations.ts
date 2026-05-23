@@ -9,12 +9,41 @@ import type {
   AdROIInput,
   AdROIResult,
   RatioLevel,
+  MonthlyPayment,
 } from './types'
+
+function startOfToday(): number {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  return d.getTime()
+}
+
+export function isFutureClient(client: Client, now: number = startOfToday()): boolean {
+  return new Date(client.start_date).getTime() > now
+}
+
+export function isActiveNow(client: Client, now: number = startOfToday()): boolean {
+  return client.status === 'active' && !isFutureClient(client, now)
+}
 
 export function calculateMRR(clients: Client[]): number {
   return clients
-    .filter((c) => c.status === 'active')
+    .filter((c) => isActiveNow(c))
     .reduce((sum, c) => sum + c.monthly_amount, 0)
+}
+
+export function calculateCollectedMRR(
+  clients: Client[],
+  payments: MonthlyPayment[]
+): number {
+  const activeMap = new Map(
+    clients
+      .filter((c) => isActiveNow(c))
+      .map((c) => [c.id, c.monthly_amount] as const)
+  )
+  return payments
+    .filter((p) => activeMap.has(p.client_id))
+    .reduce((sum, p) => sum + (p.amount ?? activeMap.get(p.client_id) ?? 0), 0)
 }
 
 export function calculateExpenses(
@@ -37,7 +66,7 @@ export function calculateMargin(net: number, mrr: number): number {
 }
 
 export function calculateConcentrationRisk(clients: Client[]): ConcentrationRisk {
-  const active = clients.filter((c) => c.status === 'active')
+  const active = clients.filter((c) => isActiveNow(c))
   const mrr = active.reduce((sum, c) => sum + c.monthly_amount, 0)
 
   if (active.length === 0 || mrr === 0) {
@@ -55,14 +84,14 @@ export function calculateConcentrationRisk(clients: Client[]): ConcentrationRisk
 }
 
 export function calculateAvgTicket(clients: Client[]): number {
-  const active = clients.filter((c) => c.status === 'active')
+  const active = clients.filter((c) => isActiveNow(c))
   if (active.length === 0) return 0
   return calculateMRR(active) / active.length
 }
 
 export function calculateMedianTicket(clients: Client[]): number {
   const active = clients
-    .filter((c) => c.status === 'active')
+    .filter((c) => isActiveNow(c))
     .map((c) => c.monthly_amount)
     .sort((a, b) => a - b)
 
@@ -75,7 +104,7 @@ export function calculateMedianTicket(clients: Client[]): number {
 }
 
 export function getTierBreakdown(clients: Client[]): TierBreakdown[] {
-  const active = clients.filter((c) => c.status === 'active')
+  const active = clients.filter((c) => isActiveNow(c))
   const mrr = active.reduce((sum, c) => sum + c.monthly_amount, 0)
 
   const tiers = ['anchor', 'high', 'mid', 'entry', 'custom'] as const

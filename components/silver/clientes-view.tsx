@@ -22,12 +22,28 @@ const STATUS_LABELS: Record<ClientStatus, string> = {
   churned: 'Churned',
 }
 
-function daysSince(dateStr: string): number {
-  return Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24))
+function isFutureStart(dateStr: string): boolean {
+  const d = new Date(dateStr)
+  d.setHours(0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return d.getTime() > today.getTime()
+}
+
+function tenureLabel(dateStr: string): string {
+  const start = new Date(dateStr)
+  start.setHours(0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const diff = Math.round((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+  if (diff >= 0) return `${diff}d`
+  return `+${-diff}d`
 }
 
 function activeMRR(clients: Client[]) {
-  return clients.filter((c) => c.status === 'active').reduce((sum, c) => sum + c.monthly_amount, 0)
+  return clients
+    .filter((c) => c.status === 'active' && !isFutureStart(c.start_date))
+    .reduce((sum, c) => sum + c.monthly_amount, 0)
 }
 
 function formatPaymentDate(isoStr: string): string {
@@ -301,13 +317,17 @@ export function ClientesView({ clients, initialTier = 'all', payments = [] }: Cl
 
                 {/* Days — hidden on mobile */}
                 <div className="cl-hide text-right font-space text-[13px] text-[var(--text-mute)]">
-                  {daysSince(client.start_date)}d
+                  {tenureLabel(client.start_date)}
                 </div>
 
                 {/* Payment — hidden on mobile */}
                 <div className="cl-hide text-right">
                   {client.status !== 'active' ? (
                     <span className="font-space text-[12px] text-[var(--text-faint)]">—</span>
+                  ) : isFutureStart(client.start_date) ? (
+                    <span className="inline-block font-space text-[11px] font-medium" style={{ padding: '3px 8px', borderRadius: 100, background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.15)', color: 'var(--text-faint)' }}>
+                      Próximo
+                    </span>
                   ) : paymentMap.has(client.id) ? (
                     <span className="inline-block font-space text-[11px] font-medium" style={{ padding: '3px 8px', borderRadius: 100, background: 'rgba(255,255,255,0.06)', color: 'var(--text-soft)' }}>
                       {formatPaymentDate(paymentMap.get(client.id)!.paid_at!)}

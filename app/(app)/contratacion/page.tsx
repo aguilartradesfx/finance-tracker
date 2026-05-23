@@ -3,6 +3,7 @@ import {
   calculateMRR,
   calculateExpenses,
   calculateAvgTicket,
+  isActiveNow,
 } from '@/lib/silver/calculations'
 import { formatMoney } from '@/lib/silver/format'
 import { Topbar } from '@/components/silver/topbar'
@@ -15,7 +16,7 @@ export default async function ContratacionPage() {
   const mrr = calculateMRR(clients)
   const totalExpenses = calculateExpenses(expenses)
   const avgTicket = calculateAvgTicket(clients)
-  const activeClients = clients.filter((c) => c.status === 'active').length
+  const activeClients = clients.filter((c) => isActiveNow(c)).length
 
   return (
     <div className="flex flex-col gap-5">

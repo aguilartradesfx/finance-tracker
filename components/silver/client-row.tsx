@@ -2,10 +2,16 @@ import Link from 'next/link'
 import { formatMoney } from '@/lib/silver/format'
 import type { Client } from '@/lib/silver/types'
 
-function daysSince(dateStr: string): number {
+function clientTenureLabel(dateStr: string): string {
   const start = new Date(dateStr)
-  const now = new Date()
-  return Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+  start.setHours(0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const diff = Math.round((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+  if (diff >= 0) return `${diff} días activo`
+  const days = -diff
+  if (days === 1) return 'Inicia mañana'
+  return `Inicia en ${days} días`
 }
 
 interface ClientRowProps {
@@ -25,7 +31,7 @@ const TIER_LABELS: Record<string, string> = {
 export function ClientRow({ client, rank, totalMRR }: ClientRowProps) {
   const isAnchor = client.tier === 'anchor'
   const pct = totalMRR > 0 ? ((client.monthly_amount / totalMRR) * 100).toFixed(1) : '0'
-  const days = daysSince(client.start_date)
+  const tenure = clientTenureLabel(client.start_date)
 
   return (
     <Link
@@ -56,7 +62,7 @@ export function ClientRow({ client, rank, totalMRR }: ClientRowProps) {
           )}
         </div>
         <div className="mt-0.5 text-[11px] font-normal text-[var(--text-mute)]">
-          {days} días activo{client.category ? ` · ${client.category}` : ''}
+          {tenure}{client.category ? ` · ${client.category}` : ''}
         </div>
       </div>
 

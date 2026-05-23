@@ -1,6 +1,8 @@
 import { getClients, getMonthlyPaymentsForMonth, getIncomeEntriesForMonth } from '@/lib/silver/queries'
+import { isActiveNow, isFutureClient } from '@/lib/silver/calculations'
 import { Topbar } from '@/components/silver/topbar'
 import { CobroBoard } from '@/components/silver/cobro-board'
+import { UpcomingClients } from '@/components/silver/upcoming-clients'
 import { IncomeEntries } from '@/components/silver/income-entries'
 import { Card, CardBody } from '@/components/silver/card'
 
@@ -37,7 +39,8 @@ export default async function CobrosPage() {
     getIncomeEntriesForMonth(month),
   ])
 
-  const clients = allClients.filter((c) => c.status === 'active')
+  const clients = allClients.filter((c) => isActiveNow(c))
+  const upcomingClients = allClients.filter((c) => c.status === 'active' && isFutureClient(c))
 
   return (
     <div className="flex flex-col gap-5">
@@ -82,6 +85,7 @@ export default async function CobrosPage() {
       )}
 
       <CobroBoard clients={clients} payments={payments} month={month} tableExists={tableExists} />
+      <UpcomingClients clients={upcomingClients} />
       <IncomeEntries entries={incomeEntries} month={month} />
     </div>
   )

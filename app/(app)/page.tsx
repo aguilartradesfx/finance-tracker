@@ -6,12 +6,21 @@ import {
   getIncomeEntriesForMonth,
   ensureNextThreeMonthsGoals,
 } from '@/lib/silver/queries'
-import { calculateMRR, calculateExpenses } from '@/lib/silver/calculations'
-import { formatMoney, monthLabelES } from '@/lib/silver/format'
+import {
+  calculateMRR,
+  calculateCollectedMRR,
+  calculateExpenses,
+  calculateMargin,
+  isActiveNow,
+  isFutureClient,
+} from '@/lib/silver/calculations'
+import { formatMoney, formatPercent, monthLabelES } from '@/lib/silver/format'
 
 import { Topbar } from '@/components/silver/topbar'
 import { Card, CardHeader, CardBody } from '@/components/silver/card'
+import { KpiHero } from '@/components/silver/kpi-hero'
 import { CobroBoard } from '@/components/silver/cobro-board'
+import { UpcomingClients } from '@/components/silver/upcoming-clients'
 import { IncomeEntries } from '@/components/silver/income-entries'
 import { ProjectionChart } from '@/components/silver/projection-chart'
 
@@ -31,16 +40,62 @@ export default async function InicioPage() {
   ])
 
   const mrr = calculateMRR(allClients)
+  const collectedMRR = calculateCollectedMRR(allClients, payments)
   const totalExpenses = calculateExpenses(expenses)
+  const extraIncome = incomeEntries.reduce((sum, e) => sum + e.amount, 0)
+
+  const expectedIncome = mrr + extraIncome
+  const collectedIncome = collectedMRR + extraIncome
+  const collectedNet = collectedIncome - totalExpenses
+  const margin = calculateMargin(collectedNet, collectedIncome)
+  const mrrCollectedPct = mrr > 0 ? (collectedMRR / mrr) * 100 : 0
+  const expectedCollectedPct = expectedIncome > 0 ? (collectedIncome / expectedIncome) * 100 : 0
+  const activeExpensesCount = expenses.filter((e) => e.active).length
 
   await ensureNextThreeMonthsGoals(mrr)
   const goals = await getMonthlyGoals()
 
-  const activeClients = allClients.filter((c) => c.status === 'active')
+  const activeClients = allClients.filter((c) => isActiveNow(c))
+  const upcomingClients = allClients.filter((c) => c.status === 'active' && isFutureClient(c))
 
   return (
     <div className="flex flex-col gap-5">
+      <style>{`
+        @media (max-width: 767px) {
+          .home-hero { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
       <Topbar />
+
+      {/* ── Hero row ────────────────────────── */}
+      <div className="home-hero grid gap-4" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 1fr' }}>
+        <KpiHero
+          label="Ingreso expectado de este mes"
+          value={expectedIncome}
+          indicatorVariant={collectedNet >= 0 ? 'profit' : 'loss'}
+          large
+          subtitle={`Cobrado $${formatMoney(collectedIncome)} · ${expectedCollectedPct.toFixed(0)}% del expectado`}
+        />
+        <KpiHero
+          label="Ingresos · MRR"
+          value={mrr}
+          indicatorVariant="bright"
+          subtitle={`Cobrado $${formatMoney(collectedMRR)} · ${mrrCollectedPct.toFixed(0)}%`}
+        />
+        <KpiHero
+          label="Gastos fijos"
+          value={totalExpenses}
+          indicatorVariant="dim"
+          subtitle={`${activeExpensesCount} conceptos`}
+        />
+        <KpiHero
+          label="Neto mensual"
+          value={collectedNet}
+          indicatorVariant="bright"
+          valueVariant="bright"
+          subtitle={`Margen del ${formatPercent(margin)} · sobre lo cobrado`}
+        />
+      </div>
 
       {/* ── Cobros del mes ──────────────────── */}
       <CobroBoard
@@ -49,6 +104,9 @@ export default async function InicioPage() {
         month={month}
         tableExists={tableExists}
       />
+
+      {/* ── Próximos clientes ───────────────── */}
+      <UpcomingClients clients={upcomingClients} />
 
       {/* ── Otros ingresos ──────────────────── */}
       <IncomeEntries entries={incomeEntries} month={month} />

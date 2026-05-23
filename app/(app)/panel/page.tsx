@@ -1,13 +1,14 @@
-import { getClients, getExpenses, getMonthlyGoals, getIncomeEntriesForMonth, ensureNextThreeMonthsGoals } from '@/lib/silver/queries'
+import { getClients, getExpenses, getMonthlyGoals, getIncomeEntriesForMonth, getMonthlyPaymentsForMonth, ensureNextThreeMonthsGoals } from '@/lib/silver/queries'
 import {
   calculateMRR,
+  calculateCollectedMRR,
   calculateExpenses,
-  calculateNet,
   calculateMargin,
   calculateConcentrationRisk,
   calculateAvgTicket,
   calculateMedianTicket,
   getTierBreakdown,
+  isActiveNow,
 } from '@/lib/silver/calculations'
 import { formatMoney, formatPercent, monthLabelES } from '@/lib/silver/format'
 
@@ -35,20 +36,26 @@ function currentMonthISO(): string {
 
 export default async function PanelPage() {
   const month = currentMonthISO()
-  const [clients, expenses, incomeEntries] = await Promise.all([
+  const [clients, expenses, incomeEntries, { payments }] = await Promise.all([
     getClients(),
     getExpenses(),
     getIncomeEntriesForMonth(month),
+    getMonthlyPaymentsForMonth(month),
   ])
 
-  const activeClients = clients.filter((c) => c.status === 'active')
+  const activeClients = clients.filter((c) => isActiveNow(c))
   const mrr = calculateMRR(clients)
+  const collectedMRR = calculateCollectedMRR(clients, payments)
   const totalExpenses = calculateExpenses(expenses)
   const extraIncome = incomeEntries.reduce((sum, e) => sum + e.amount, 0)
-  const totalIncome = mrr + extraIncome
-  const totalNet = totalIncome - totalExpenses
-  const net = calculateNet(mrr, totalExpenses)
-  const margin = calculateMargin(totalNet, totalIncome)
+
+  const expectedIncome = mrr + extraIncome
+  const collectedIncome = collectedMRR + extraIncome
+  const collectedNet = collectedIncome - totalExpenses
+  const margin = calculateMargin(collectedNet, collectedIncome)
+  const mrrCollectedPct = mrr > 0 ? (collectedMRR / mrr) * 100 : 0
+  const expectedCollectedPct = expectedIncome > 0 ? (collectedIncome / expectedIncome) * 100 : 0
+
   const concentration = calculateConcentrationRisk(clients)
   const avgTicket = calculateAvgTicket(clients)
   const medianTicket = calculateMedianTicket(clients)
@@ -84,18 +91,19 @@ export default async function PanelPage() {
       {/* ── Hero row ────────────────────────── */}
       <div className="pn-hero grid gap-4" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 1fr' }}>
         <KpiHero
-          label="Ingresos totales"
-          value={totalIncome}
-          indicatorVariant={totalNet >= 0 ? 'profit' : 'loss'}
+          label="Ingreso expectado de este mes"
+          value={expectedIncome}
+          indicatorVariant={collectedNet >= 0 ? 'profit' : 'loss'}
           valueVariant="default"
           sparkBars={SPARK_BARS}
           large
-          subtitle={extraIncome > 0 ? `MRR $${formatMoney(mrr)} + $${formatMoney(extraIncome)} extras` : `Solo MRR este mes`}
+          subtitle={`Cobrado $${formatMoney(collectedIncome)} · ${expectedCollectedPct.toFixed(0)}% del expectado`}
         />
         <KpiHero
           label="Ingresos · MRR"
           value={mrr}
           indicatorVariant="bright"
+          subtitle={`Cobrado $${formatMoney(collectedMRR)} · ${mrrCollectedPct.toFixed(0)}%`}
         />
         <KpiHero
           label="Gastos fijos"
@@ -105,10 +113,10 @@ export default async function PanelPage() {
         />
         <KpiHero
           label="Neto mensual"
-          value={totalNet}
+          value={collectedNet}
           indicatorVariant="bright"
           valueVariant="bright"
-          subtitle={`Margen del ${formatPercent(margin)} · ${totalNet > 0 ? 'sobre el equilibrio' : 'bajo el equilibrio'}`}
+          subtitle={`Margen del ${formatPercent(margin)} · sobre lo cobrado`}
         />
       </div>
 
