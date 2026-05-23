@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardHeader, CardBody } from '@/components/silver/card'
 import { calculateAdROI } from '@/lib/silver/calculations'
 import { formatMoney } from '@/lib/silver/format'
@@ -15,13 +15,17 @@ export function AdRoiCalculator({ defaultAvgTicket = 296 }: AdRoiCalculatorProps
   const [closeRate, setCloseRate] = useState(10)
   const [retention, setRetention] = useState(12)
 
-  const result = calculateAdROI({
-    budget,
-    cpl,
-    closeRate,
-    avgTicket: defaultAvgTicket,
-    retentionMonths: retention,
-  })
+  const result = useMemo(
+    () =>
+      calculateAdROI({
+        budget,
+        cpl,
+        closeRate,
+        avgTicket: defaultAvgTicket,
+        retentionMonths: retention,
+      }),
+    [budget, cpl, closeRate, defaultAvgTicket, retention]
+  )
 
   const INPUTS = [
     { label: 'Presupuesto / mes', value: budget, setValue: setBudget, prefix: '$', step: 50 },

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardHeader, CardBody } from '@/components/silver/card'
 import {
   calculateTotalCost,
@@ -34,12 +34,14 @@ export function HireCalculator({ currentMRR, currentExpenses, avgTicket }: HireC
   const [salary, setSalary] = useState(1000)
   const [hireType, setHireType] = useState<HireType>('payroll')
 
-  const totalCost = calculateTotalCost(salary, hireType)
-  const requiredMRR = calculateRequiredMRR(currentExpenses, totalCost, 0.3)
-  const gap = calculateGap(requiredMRR, currentMRR)
-  const status = calculateHireStatus(gap)
-
-  const clientsNeeded = avgTicket > 0 ? Math.ceil(gap / avgTicket) : 0
+  const { totalCost, gap, status, clientsNeeded } = useMemo(() => {
+    const totalCost = calculateTotalCost(salary, hireType)
+    const requiredMRR = calculateRequiredMRR(currentExpenses, totalCost, 0.3)
+    const gap = calculateGap(requiredMRR, currentMRR)
+    const status = calculateHireStatus(gap)
+    const clientsNeeded = avgTicket > 0 ? Math.ceil(gap / avgTicket) : 0
+    return { totalCost, gap, status, clientsNeeded }
+  }, [salary, hireType, currentMRR, currentExpenses, avgTicket])
 
   const statusLabel = status === 'ready' ? 'Listo' : status === 'close' ? 'Casi' : 'Aún no'
   const isAlert = status !== 'ready'

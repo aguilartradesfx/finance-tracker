@@ -1,7 +1,8 @@
+import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import type { Client, FixedExpense, MonthlyGoal, MonthlySnapshot, AdCampaign, MonthlyPayment, IncomeEntry, GeneralExpense } from './types'
 
-export async function getClients(): Promise<Client[]> {
+export const getClients = cache(async (): Promise<Client[]> => {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('clients')
@@ -9,9 +10,9 @@ export async function getClients(): Promise<Client[]> {
     .order('monthly_amount', { ascending: false })
   if (error) throw error
   return data as Client[]
-}
+})
 
-export async function getExpenses(): Promise<FixedExpense[]> {
+export const getExpenses = cache(async (): Promise<FixedExpense[]> => {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('fixed_expenses')
@@ -19,9 +20,9 @@ export async function getExpenses(): Promise<FixedExpense[]> {
     .order('monthly_amount', { ascending: false })
   if (error) throw error
   return data as FixedExpense[]
-}
+})
 
-export async function getMonthlyGoals(): Promise<MonthlyGoal[]> {
+export const getMonthlyGoals = cache(async (): Promise<MonthlyGoal[]> => {
   const today = new Date()
   const startOfMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`
 
@@ -34,7 +35,7 @@ export async function getMonthlyGoals(): Promise<MonthlyGoal[]> {
     .limit(3)
   if (error) throw error
   return data as MonthlyGoal[]
-}
+})
 
 export async function ensureNextThreeMonthsGoals(currentMRR: number): Promise<void> {
   const today = new Date()
@@ -117,9 +118,9 @@ export async function getGeneralExpensesForMonth(
   return data as GeneralExpense[]
 }
 
-export async function getIncomeEntriesForMonth(
+export const getIncomeEntriesForMonth = cache(async (
   month: string
-): Promise<IncomeEntry[]> {
+): Promise<IncomeEntry[]> => {
   const d = new Date(month)
   const startDate = month
   const nextMonth = new Date(d.getFullYear(), d.getMonth() + 1, 1)
@@ -134,11 +135,11 @@ export async function getIncomeEntriesForMonth(
     .order('date', { ascending: false })
   if (error) return []
   return data as IncomeEntry[]
-}
+})
 
-export async function getMonthlyPaymentsForMonth(
+export const getMonthlyPaymentsForMonth = cache(async (
   month: string
-): Promise<{ payments: MonthlyPayment[]; tableExists: boolean }> {
+): Promise<{ payments: MonthlyPayment[]; tableExists: boolean }> => {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('monthly_payments')
@@ -149,4 +150,4 @@ export async function getMonthlyPaymentsForMonth(
     return { payments: [], tableExists }
   }
   return { payments: data as MonthlyPayment[], tableExists: true }
-}
+})
