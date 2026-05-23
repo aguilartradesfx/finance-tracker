@@ -68,13 +68,18 @@ export default async function InicioPage() {
       <Topbar />
 
       {/* ── Hero row ────────────────────────── */}
-      <div className="home-hero grid gap-4" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 1fr' }}>
+      <div className="home-hero grid gap-4" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+        <KpiHero
+          label="Cashflow"
+          value={collectedIncome}
+          indicatorVariant={collectedNet >= 0 ? 'profit' : 'loss'}
+          subtitle={`${expectedCollectedPct.toFixed(0)}% del expectado · cobrado este mes`}
+        />
         <KpiHero
           label="Ingreso expectado de este mes"
           value={expectedIncome}
-          indicatorVariant={collectedNet >= 0 ? 'profit' : 'loss'}
-          large
-          subtitle={`Cobrado $${formatMoney(collectedIncome)} · ${expectedCollectedPct.toFixed(0)}% del expectado`}
+          indicatorVariant="dim"
+          subtitle={`MRR $${formatMoney(mrr)} + $${formatMoney(extraIncome)} extras`}
         />
         <KpiHero
           label="Ingresos · MRR"

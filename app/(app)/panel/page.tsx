@@ -89,15 +89,20 @@ export default async function PanelPage() {
       <Topbar />
 
       {/* ── Hero row ────────────────────────── */}
-      <div className="pn-hero grid gap-4" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 1fr' }}>
+      <div className="pn-hero grid gap-4" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
         <KpiHero
-          label="Ingreso expectado de este mes"
-          value={expectedIncome}
+          label="Cashflow"
+          value={collectedIncome}
           indicatorVariant={collectedNet >= 0 ? 'profit' : 'loss'}
           valueVariant="default"
           sparkBars={SPARK_BARS}
-          large
-          subtitle={`Cobrado $${formatMoney(collectedIncome)} · ${expectedCollectedPct.toFixed(0)}% del expectado`}
+          subtitle={`${expectedCollectedPct.toFixed(0)}% del expectado · cobrado este mes`}
+        />
+        <KpiHero
+          label="Ingreso expectado de este mes"
+          value={expectedIncome}
+          indicatorVariant="dim"
+          subtitle={`MRR $${formatMoney(mrr)} + $${formatMoney(extraIncome)} extras`}
         />
         <KpiHero
           label="Ingresos · MRR"
